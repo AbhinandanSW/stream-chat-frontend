@@ -45,7 +45,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   }, [messages, streamingMessage]);
 
-  const simulateStreamingResponse = async (userMessage: string) => {
+  const streamApiResponse = async (userMessage: string) => {
     setIsStreaming(true);
     setStreamingMessage('');
     
@@ -54,34 +54,70 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const signal = abortControllerRef.current.signal;
 
     try {
-      // Simulate API response with streaming
-      const responseText = `I understand you sent: "${userMessage}". This is a simulated streaming response that demonstrates how the chat interface handles real-time message updates. The response is being typed out character by character to show the streaming effect similar to Claude's interface.`;
-      
-      const words = responseText.split(' ');
-      
-      for (let i = 0; i < words.length; i++) {
-        if (signal.aborted) {
-          break;
-        }
-        
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
-        
-        const currentText = words.slice(0, i + 1).join(' ');
-        setStreamingMessage(currentText);
+      // Replace with your actual API endpoint
+      const response = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          message: userMessage,
+          // Add other required fields like thread_id, session_id if needed
+        }),
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      if (!signal.aborted) {
-        // Finalize the message
-        const finalMessage: Message = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: responseText,
-          timestamp: new Date(),
-        };
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      if (!reader) {
+        throw new Error('No response body reader available');
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
         
-        // In a real app, you'd update the messages through the parent component
-        console.log('Final message:', finalMessage);
+        if (done || signal.aborted) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const jsonStr = line.slice(6); // Remove 'data: ' prefix
+              const data = JSON.parse(jsonStr) as StreamResponse;
+              
+              if (data.error_message) {
+                throw new Error(data.error_message);
+              }
+              
+              if (data.type === 'delta' && data.content) {
+                accumulatedContent += data.content;
+                setStreamingMessage(accumulatedContent);
+              } else if (data.type === 'completion') {
+                // Stream completed
+                const finalMessage: Message = {
+                  id: Date.now().toString(),
+                  role: 'assistant',
+                  content: accumulatedContent,
+                  timestamp: new Date(),
+                };
+                
+                // In a real app, you'd update the messages through the parent component
+                console.log('Final message:', finalMessage);
+                break;
+              }
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
+            }
+          }
+        }
       }
       
     } catch (error) {
@@ -100,7 +136,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     onSendMessage(message);
     
     // Start streaming response
-    await simulateStreamingResponse(message);
+    await streamApiResponse(message);
   };
 
   const handleStopGeneration = () => {
