@@ -69,7 +69,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 "placeholder:text-muted-foreground focus-visible:ring-0",
                 "min-h-[24px] max-h-[200px] overflow-y-auto custom-scrollbar"
               )}
-              rows={1}
+              rows={2}
             />
             
             <div className="flex gap-2">
