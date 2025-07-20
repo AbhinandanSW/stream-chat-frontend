@@ -4,6 +4,7 @@ import { AppSidebar } from './AppSidebar';
 import { ChatInterface } from './ChatInterface';
 import { Button } from '@/components/ui/button';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import type { CodeArtifact } from './CodeArtifact';
 
 interface Message {
   id: string;
@@ -29,6 +30,7 @@ export const MainLayout: React.FC = () => {
     }
   ]);
   const [currentChatId, setCurrentChatId] = useState<string>('1');
+  const [currentArtifact, setCurrentArtifact] = useState<CodeArtifact | null>(null);
 
   const currentChat = chats.find(chat => chat.id === currentChatId);
 
@@ -124,6 +126,9 @@ export const MainLayout: React.FC = () => {
               messages={currentChat?.messages || []}
               onSendMessage={handleSendMessage}
               onMessageComplete={handleMessageComplete}
+              currentArtifact={currentArtifact}
+              onShowArtifact={setCurrentArtifact}
+              onCloseArtifact={() => setCurrentArtifact(null)}
             />
           </div>
         </main>

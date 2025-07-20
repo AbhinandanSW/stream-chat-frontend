@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
+import { CodeArtifact, type CodeArtifact as CodeArtifactType } from './CodeArtifact';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +27,9 @@ interface ChatInterfaceProps {
   onSendMessage: (message: string) => void;
   onMessageComplete?: (message: Message) => void;
   className?: string;
+  currentArtifact?: CodeArtifactType | null;
+  onShowArtifact?: (artifact: CodeArtifactType) => void;
+  onCloseArtifact?: () => void;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
@@ -34,6 +38,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onSendMessage,
   onMessageComplete,
   className,
+  currentArtifact,
+  onShowArtifact,
+  onCloseArtifact,
 }) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
@@ -163,44 +170,61 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
-      <ScrollArea ref={scrollRef} className="flex-1 custom-scrollbar">
-        <div className="max-w-4xl mx-auto">
-          {allMessages.length === 0 ? (
-            <div className="flex items-center justify-center h-full min-h-[400px]">
-              <div className="text-center space-y-4 max-w-md">
-                <div className="w-16 h-16 bg-gradient-to-r from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg mx-auto">
-                  <span className="text-2xl font-bold text-primary-foreground">C</span>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">How can I help you today?</h2>
-                  <p className="text-muted-foreground">
-                    Start a conversation by typing a message below.
-                  </p>
+    <div className={cn("flex h-full", className)}>
+      {/* Main Chat Area */}
+      <div className={cn(
+        "flex flex-col transition-all duration-300",
+        currentArtifact ? "w-1/2" : "w-full"
+      )}>
+        <ScrollArea ref={scrollRef} className="flex-1 custom-scrollbar">
+          <div className="max-w-4xl mx-auto">
+            {allMessages.length === 0 ? (
+              <div className="flex items-center justify-center h-full min-h-[400px]">
+                <div className="text-center space-y-4 max-w-md">
+                  <div className="w-16 h-16 bg-gradient-to-r from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg mx-auto">
+                    <span className="text-2xl font-bold text-primary-foreground">C</span>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">How can I help you today?</h2>
+                    <p className="text-muted-foreground">
+                      Start a conversation by typing a message below.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-0">
-              {allMessages.map((message, index) => (
-                <ChatMessage
-                  key={message.id}
-                  role={message.role}
-                  content={message.content}
-                  isStreaming={message.id === 'streaming'}
-                />
-              ))}
-            </div>
-          )}
+            ) : (
+              <div className="space-y-0">
+                {allMessages.map((message, index) => (
+                  <ChatMessage
+                    key={message.id}
+                    role={message.role}
+                    content={message.content}
+                    isStreaming={message.id === 'streaming'}
+                    onShowArtifact={onShowArtifact}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          onStopGeneration={handleStopGeneration}
+          isStreaming={isStreaming}
+          placeholder="Send a message..."
+        />
+      </div>
+
+      {/* Code Artifact Sidebar */}
+      {currentArtifact && (
+        <div className="w-1/2 h-full">
+          <CodeArtifact
+            artifact={currentArtifact}
+            onClose={onCloseArtifact || (() => {})}
+          />
         </div>
-      </ScrollArea>
-      
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        onStopGeneration={handleStopGeneration}
-        isStreaming={isStreaming}
-        placeholder="Send a message..."
-      />
+      )}
     </div>
   );
 };
