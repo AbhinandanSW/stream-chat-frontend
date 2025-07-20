@@ -10,22 +10,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, error } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     
     if (!email || !password) {
-      setError('Please fill in all fields');
       return;
     }
 
-    const success = await login(email, password);
-    if (!success) {
-      setError('Invalid email or password');
-    }
+    await login(email, password);
   };
 
   return (

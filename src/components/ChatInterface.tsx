@@ -24,6 +24,7 @@ interface ChatInterfaceProps {
   chatId?: string;
   messages: Message[];
   onSendMessage: (message: string) => void;
+  onMessageComplete?: (message: Message) => void;
   className?: string;
 }
 
@@ -31,6 +32,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   chatId,
   messages,
   onSendMessage,
+  onMessageComplete,
   className,
 }) => {
   const [isStreaming, setIsStreaming] = useState(false);
@@ -54,15 +56,21 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const signal = abortControllerRef.current.signal;
 
     try {
-      // Replace with your actual API endpoint
-      const response = await fetch('/api/chat/stream', {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('https://ai-bot-bepyth.onrender.com/chat/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ 
           message: userMessage,
-          // Add other required fields like thread_id, session_id if needed
+          thread_id: chatId || '1',
+          session_id: 'session_1'
         }),
         signal,
       });
@@ -109,8 +117,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   timestamp: new Date(),
                 };
                 
-                // In a real app, you'd update the messages through the parent component
-                console.log('Final message:', finalMessage);
+                onMessageComplete?.(finalMessage);
                 break;
               }
             } catch (parseError) {

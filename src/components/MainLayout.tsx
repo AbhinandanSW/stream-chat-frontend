@@ -83,26 +83,18 @@ export const MainLayout: React.FC = () => {
           }
         : chat
     ));
+  };
 
-    // Simulate assistant response
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `I understand you said: "${message}". This is a demo response showing how the streaming chat interface works. In a real implementation, this would connect to your API endpoint that returns the streaming response format you provided.`,
-        timestamp: new Date(),
-      };
-
-      setChats(prev => prev.map(chat =>
-        chat.id === currentChatId
-          ? {
-              ...chat,
-              messages: [...chat.messages, assistantMessage],
-              updatedAt: new Date().toISOString(),
-            }
-          : chat
-      ));
-    }, 1000);
+  const handleMessageComplete = (assistantMessage: Message) => {
+    setChats(prev => prev.map(chat =>
+      chat.id === currentChatId
+        ? {
+            ...chat,
+            messages: [...chat.messages, assistantMessage],
+            updatedAt: new Date().toISOString(),
+          }
+        : chat
+    ));
   };
 
   return (
@@ -131,6 +123,7 @@ export const MainLayout: React.FC = () => {
               chatId={currentChatId}
               messages={currentChat?.messages || []}
               onSendMessage={handleSendMessage}
+              onMessageComplete={handleMessageComplete}
             />
           </div>
         </main>

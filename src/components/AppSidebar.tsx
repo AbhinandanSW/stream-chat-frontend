@@ -180,12 +180,12 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             <Button variant="ghost" className="w-full justify-start gap-3 h-12">
               <Avatar className="h-6 w-6">
                 <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  {user?.full_name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               {!collapsed && (
                 <div className="flex-1 text-left min-w-0">
-                  <p className="text-sm font-medium truncate">{user?.name}</p>
+                  <p className="text-sm font-medium truncate">{user?.full_name}</p>
                   <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                 </div>
               )}
