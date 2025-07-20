@@ -72,7 +72,7 @@ export const CodeArtifact: React.FC<CodeArtifactProps> = ({
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-background border-l border-border",
+      "flex flex-col h-full bg-background border-l border-border fixed top-0 right-0 w-[700px] z-50",
       className
     )}>
       {/* Header */}
@@ -98,13 +98,13 @@ export const CodeArtifact: React.FC<CodeArtifactProps> = ({
               >
                 <Code2 className="h-4 w-4" />
               </Button>
-              <Button
+              {/* <Button
                 variant={view === 'preview' ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setView('preview')}
               >
                 <Eye className="h-4 w-4" />
-              </Button>
+              </Button> */}
             </>
           )}
           <Button
@@ -125,7 +125,7 @@ export const CodeArtifact: React.FC<CodeArtifactProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 max-h-[700px] overflow-y-auto">
         {view === 'code' ? (
           <ScrollArea className="h-full">
             <pre className="p-4 text-sm font-mono">
